@@ -19,6 +19,73 @@
   let isSubmitting = false;
 
   // =================================================================================
+  // === WARNING POPUP ===============================================================
+  // =================================================================================
+
+  function showWarningPopup() {
+    const POPUP_KEY = "quizHelperWarningDismissed";
+    if (localStorage.getItem(POPUP_KEY) === "true") return;
+
+    const overlay = document.createElement("div");
+    overlay.style = `
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.6);
+      z-index: 100000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    const box = document.createElement("div");
+    box.style = `
+      background: #1e2a36;
+      color: white;
+      padding: 20px;
+      width: 350px;
+      border-radius: 10px;
+      font-family: Segoe UI, sans-serif;
+      border: 1px solid #4a627a;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      text-align: center;
+    `;
+
+    box.innerHTML = `
+      <h3 style="margin-top:0;">⚠️ Warning</h3>
+      <p style="margin: 10px 0 20px;">
+        Do not use this maliciously, only use it to help.<br>
+        I am not responsible for what you do.<br>
+        You have been warned.
+      </p>
+
+      <label style="display:flex; align-items:center; gap:6px; margin-bottom:15px; cursor:pointer;">
+        <input type="checkbox" id="neverShowAgainChk">
+        Never show again
+      </label>
+
+      <button id="warningCloseBtn" style="
+        background:#3498db;
+        color:white;
+        padding:10px 15px;
+        border:none;
+        border-radius:6px;
+        cursor:pointer;
+        font-weight:bold;
+      ">Close</button>
+    `;
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    document.getElementById("warningCloseBtn").onclick = () => {
+      const chk = document.getElementById("neverShowAgainChk").checked;
+      if (chk) localStorage.setItem(POPUP_KEY, "true");
+      overlay.remove();
+    };
+  }
+
+  // =================================================================================
   // === UI & STYLING ================================================================
   // =================================================================================
 
@@ -199,17 +266,16 @@
 
       const text = qEl.innerText.trim();
       const imgHash = await getImageHash(qContainer.querySelector('img'));
-      
-      // **THE NEW COMBINED HASHING LOGIC**
+
       const combinedIdString = text + (imgHash || '');
       const questionId = await sha256(combinedIdString);
-      
+
       const isNewQuestion = lastHash !== questionId;
       if (isNewQuestion) lastHash = questionId;
 
       let db = loadDB();
       let savedAnswer = db[questionId]?.answer || '';
-      
+
       if (autoLearn) {
           const correctAnswerOnPage = findCorrectAnswerOnPage();
           if (correctAnswerOnPage && String(correctAnswerOnPage) !== savedAnswer) {
@@ -219,7 +285,7 @@
               showPanelMessage(`Answer learned: "${savedAnswer}"`);
           }
       }
-      
+
       if (savedAnswer && isNewQuestion && !document.querySelector('.edit-answer-input:focus')) {
           pasteAnswer(savedAnswer);
       }
@@ -229,8 +295,7 @@
         <div class="saved-answer-display" id="saved-answer-container"></div>
         <div id="nav-container"></div>
       `;
-      
-      // **NEW: EDITABLE ANSWER BOX**
+
       const answerContainer = document.getElementById('saved-answer-container');
       if (savedAnswer) {
           answerContainer.innerHTML = `
@@ -262,7 +327,7 @@
           lastHash = null;
           button.click();
       };
-      
+
       if (isNewQuestion && autoFinish) {
           if (pageNav.submit && savedAnswer) return handleAction(pageNav.submit);
           if (pageNav.next) return handleAction(pageNav.next);
@@ -273,7 +338,7 @@
               return handleAction(pageNav.submit);
           }
       }
-      
+
       const createNavBtn = (text, el) => {
           const btn = document.createElement('button');
           btn.innerText = text;
@@ -295,5 +360,6 @@
   // --- INITIALIZATION ---
   const panel = buildUI();
   injectStyles();
+  showWarningPopup(); // <-- NEW POPUP
   setInterval(updatePanel, 500);
 })();
