@@ -1,4 +1,4 @@
-# educake-helper
+# eduquicker
 This is a simple tool used to HELP with educake. By using this tool/script/code, i am hereby not resposible for your actions.
 If you are bad at science, revise. I love science, i do well and its fun. But educake seems like a hastle, and it has difficulties so i made this.
 Please use responsibly! I am not at fault if you are banned for using this!
